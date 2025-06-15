@@ -3,7 +3,7 @@
 
 pkgname=linux-samsung-goyavewifi
 pkgver=3.10.17
-pkgrel=0
+pkgrel=1
 pkgdesc="Samsung Galaxy Tab 3 Lite kernel fork"
 arch="armv7"
 _carch="arm"

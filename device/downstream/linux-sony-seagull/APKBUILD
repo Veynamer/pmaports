@@ -4,7 +4,7 @@
 
 pkgname=linux-sony-seagull
 pkgver=3.4.0
-pkgrel=6
+pkgrel=7
 pkgdesc="Sony Xperia T3 kernel fork"
 arch="armhf"
 _carch="arm"

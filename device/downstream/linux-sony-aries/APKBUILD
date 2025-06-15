@@ -3,7 +3,7 @@
 
 pkgname=linux-sony-aries
 pkgver=3.10.84
-pkgrel=11
+pkgrel=12
 pkgdesc="Sony Xperia Z3 Compact kernel"
 arch="armhf"
 _carch="arm"

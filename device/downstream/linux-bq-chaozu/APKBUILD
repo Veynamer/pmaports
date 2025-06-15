@@ -2,7 +2,7 @@
 
 pkgname=linux-bq-chaozu
 pkgver=3.18.31
-pkgrel=3
+pkgrel=4
 pkgdesc="Aquaris U kernel fork"
 arch="armhf"
 _carch="arm"

@@ -2,7 +2,7 @@
 
 pkgname=linux-sony-coconut
 pkgver=3.4.0
-pkgrel=8
+pkgrel=9
 pkgdesc="Live with Walkman kernel fork"
 arch="armv7"
 _carch="arm"

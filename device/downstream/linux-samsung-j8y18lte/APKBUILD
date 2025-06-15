@@ -3,7 +3,7 @@
 
 pkgname=linux-samsung-j8y18lte
 pkgver=3.18.124
-pkgrel=0
+pkgrel=1
 pkgdesc="Samsung Galaxy J8 (2018) kernel fork"
 arch="aarch64"
 _carch="arm64"

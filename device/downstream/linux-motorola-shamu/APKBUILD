@@ -2,7 +2,7 @@
 
 pkgname=linux-motorola-shamu
 pkgver=3.10.40
-pkgrel=0
+pkgrel=1
 pkgdesc="Motorola Google Nexus 6 kernel fork"
 arch="armv7"
 _carch="arm"

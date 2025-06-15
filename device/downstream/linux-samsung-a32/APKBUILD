@@ -4,7 +4,7 @@
 
 pkgname=linux-samsung-a32
 pkgver=4.14.195
-pkgrel=0
+pkgrel=1
 pkgdesc="Samsung Galaxy A32 4G kernel fork"
 arch="aarch64"
 _carch="arm64"

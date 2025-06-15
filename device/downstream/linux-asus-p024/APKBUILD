@@ -3,7 +3,7 @@
 
 pkgname=linux-asus-p024
 pkgver=3.10.49
-pkgrel=0
+pkgrel=1
 pkgdesc="ASUS ZenPad 8.0 kernel fork"
 arch="armv7"
 _carch="arm"

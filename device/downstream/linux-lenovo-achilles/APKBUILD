@@ -3,7 +3,7 @@
 
 pkgname=linux-lenovo-achilles
 pkgver=3.10.49
-pkgrel=0
+pkgrel=1
 pkgdesc="Lenovo Tab2 A10-30L kernel fork"
 arch="armv7"
 _carch="arm"

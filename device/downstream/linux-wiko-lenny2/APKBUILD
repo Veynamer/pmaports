@@ -3,7 +3,7 @@
 
 pkgname=linux-wiko-lenny2
 pkgver=3.10.72
-pkgrel=5
+pkgrel=6
 pkgdesc="Wiko Lenny 2 downstream kernel fork"
 arch="armv7"
 _carch="arm"

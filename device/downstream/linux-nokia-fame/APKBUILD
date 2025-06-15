@@ -3,7 +3,7 @@
 
 pkgname=linux-nokia-fame
 pkgver=3.4.0
-pkgrel=0
+pkgrel=1
 pkgdesc="Nokia Lumia 520 kernel fork"
 arch="armv7"
 _carch="arm"

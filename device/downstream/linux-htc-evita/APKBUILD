@@ -3,7 +3,7 @@
 
 pkgname=linux-htc-evita
 pkgver=3.4.113
-pkgrel=4
+pkgrel=5
 pkgdesc="HTC One XL kernel fork"
 arch="armv7"
 _carch="arm"

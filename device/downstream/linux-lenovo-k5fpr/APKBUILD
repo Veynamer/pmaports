@@ -3,7 +3,7 @@
 
 pkgname=linux-lenovo-k5fpr
 pkgver=3.18.140
-pkgrel=0
+pkgrel=1
 pkgdesc="Lenovo K4 Note kernel fork"
 arch="aarch64"
 _carch="arm64"

@@ -3,7 +3,7 @@
 
 pkgname=linux-lenovo-tb-x704f
 pkgver=3.18.140
-pkgrel=0
+pkgrel=1
 pkgdesc="Lenovo TAB4 10 Plus kernel fork"
 arch="aarch64"
 _carch="arm64"

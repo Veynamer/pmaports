@@ -3,7 +3,7 @@
 
 pkgname=linux-fly-iq4404
 pkgver=3.10.89
-pkgrel=5
+pkgrel=6
 pkgdesc="Fly Spark kernel fork"
 arch="armv7"
 _carch="arm"
