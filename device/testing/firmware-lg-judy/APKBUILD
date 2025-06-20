@@ -1,0 +1,29 @@
+# Maintainer: Paul Sajna <hello@paulsajna.com>
+
+pkgname=firmware-lg-judy
+pkgver=1
+pkgrel=0
+pkgdesc="Firmware for LG judyln and judyp"
+url="https://gitlab.com/sajattack/firmware-lg-judy"
+arch="aarch64"
+depends="linux-firmware-qcom linux-firmware-qca"
+license="proprietary"
+options="!strip !check !archcheck !tracedeps textrels pmb:cross-native"
+
+_commit="c62e85c40c070db2de4bbdcebc780a604916dc54"
+
+source="$pkgname.tar.gz::$url/-/archive/$_commit/$pkgname-$_commit.tar.gz
+	firmware.files
+	"
+
+package() {
+	while IFS="" read -r _i || [ -n "$_i" ]; do
+		[ ! -d $(dirname $_i) ] && mkdir -p $(dirname $_i)
+		install -Dm644 "$srcdir/$pkgname-$_commit/$_i" "$pkgdir/$_i"
+	done < "$srcdir/firmware.files"
+}
+
+sha512sums="
+41969bf070bb8a3eb00c685d968eecaa2c5ba75114e9a03fb3bf27caab1f61b8615e7dd7a9739052ce9b28efc5bdc2f36dc2fc70b821178df2e4aeaafccf46fe  firmware-lg-judy.tar.gz
+bade96d27d66a42c0f64ff1fb2537654c6c26bccb2c2ac2c854697c4f23bb73fd6d6c19eb2f06758803488497667c7961e095de99a4ae85b6eec9f170c92d23d  firmware.files
+"
