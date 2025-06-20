@@ -18,7 +18,7 @@ options="!check !tracedeps
 makedepends="bash bison findutils flex installkernel openssl-dev perl zstd python3"
 
 _config="config-$_flavor.$arch"
-_tag="sdm845-6.14-rc5-r2"
+_tag="sdm845-6.16-rc2-1"
 
 # Source
 source="
@@ -72,7 +72,7 @@ package() {
 }
 
 sha512sums="
-e68ab4fbb912882bffb1630ebb6d90bed58ec89645e60b395672b94850bbeb8cfa98b4bf646624729ac462777544b6682554864e0fc24f9c994ea39c2feb524b  linux-sdm845-6.14-rc5-r2.tar.gz
-56d17ed221eb624ea58643a239f1225594f44126a1c6af0e6ba9b57c74c4f10e7d9089d7b7fd1a3eef375a15b3263b28e821587cee25911593c05f5bacf5caeb  config-postmarketos-qcom-sdm845.aarch64
+f2543c4173ac2461390493479f51e15fcd228d7864a22a21ec84033c020c758e2017608921545ad83bb368197eaefb822965e2abed0b5671ab9b7bddc90a0faf  linux-sdm845-6.16-rc2-1.tar.gz
+8bcf4d4b532fc1e32ab04154114bfc6e4a8afc0203c7fa5929b02d282d8cfd9ff00df075dd9f3f164ca89a0ae27a89f7077fe429a96b8f75f874a35a43454747  config-postmarketos-qcom-sdm845.aarch64
 1c353a76129639b9df0c66d77bcda71fbea31995166054d97b9347b890809f92e2ef0ab52a04cb2008e9945790c1b8d1f4cc6a935741be3e6790c43dcea99a81  0001-enable-judy-uart.patch
 "
