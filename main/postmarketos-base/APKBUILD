@@ -1,6 +1,6 @@
 pkgname=postmarketos-base
 pkgver=44
-pkgrel=5
+pkgrel=6
 pkgdesc="Meta package for minimal postmarketOS base"
 url="https://postmarketos.org"
 arch="noarch"
@@ -20,13 +20,8 @@ depends="
 	postmarketos-keys
 	postmarketos-mvcfg
 	postmarketos-ramdisk
-	sudo-virt
 	zram-init
 	"
-_pmb_recommends="
-	doas
-	doas-sudo-shim
-"
 install="$pkgname.post-install"
 triggers="$pkgname.trigger=/usr/share/deviceinfo"
 subpackages="
@@ -34,17 +29,21 @@ subpackages="
 	$pkgname-nftables
 	$pkgname-nftables-openrc:nftables_openrc
 	$pkgname-openrc
+	$pkgname-privilege-doas:privilege_doas
+	$pkgname-privilege-none:privilege_none
+	$pkgname-privilege-run0:privilege_run0
+	$pkgname-privilege-sudo:privilege_sudo
 	$pkgname-ssh
 	postmarketos-release:release
 	postmarketos-baselayout:baselayout
 	"
 options="!check"
 
-replaces="
-	sudo
-	sudo-ldap
-	"
-replaces_priority=100  # leave plenty for alpine
+_pmb_select="$pkgname-privilege"
+# Prevents pmbootstrap from installing the doas package even when not selected
+# breaking everything else. The subpackages still list priorities so
+# non-interactive installs still work by installing doas as default.
+_pmb_default="$pkgname-privilege-doas"
 
 # Every postmarketos installation with pmbootstrap <= 3.3.2 has
 # alpine-base in /etc/apk/world. But for multiple reasons, we do not
@@ -214,6 +213,44 @@ release() {
 	# /etc/os-release should be a relative symlink, see:
 	# https://www.man7.org/linux/man-pages/man5/os-release.5.html
 	ln -s ../usr/lib/os-release "$subpkgdir"/etc/os-release
+}
+
+privilege_doas() {
+	pkgdesc="Use doas as the privilege escalation tool."
+	depends="doas"
+	_pmb_recommends="doas-sudo-shim"
+
+	provides="$pkgname-privilege=$pkgver-r$pkgrel"
+	provider_priority=100
+
+	amove etc/doas.d/10-postmarketos.conf
+}
+
+privilege_none() {
+	pkgdesc="Do not install any privilege escalation tool."
+	provides="$pkgname-privilege=$pkgver-r$pkgrel"
+	provider_priority=10
+
+	mkdir "$subpkgdir"
+}
+
+privilege_run0() {
+	pkgdesc="Use run0 as the privilege escalation tool. (Only works with systemd.)"
+	depends="run0"
+	provides="$pkgname-privilege=$pkgver-r$pkgrel"
+	provider_priority=80
+
+	mkdir "$subpkgdir"
+}
+
+privilege_sudo() {
+	pkgdesc="Use sudo as the privilege escalation tool."
+	depends="sudo"
+	replaces="sudo sudo-ldap"
+	provides="$pkgname-privilege=$pkgver-r$pkgrel"
+	provider_priority=90
+
+	amove etc/sudoers
 }
 
 sha512sums="

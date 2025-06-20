@@ -121,6 +121,10 @@ subpackages="
 	$pkgname-journald-zsh-completion:journald_zcomp:noarch
 	$pkgname-journald-bash-completion:journald_bcomp:noarch
 
+	run0:run0
+	run0-zsh-completion:run0_zcomp:noarch
+	run0-bash-completion:run0_bcomp:noarch
+
 	$pkgname-libs
 
 	$pkgname-bash-completion
@@ -368,6 +372,22 @@ resolved_bcomp() {
 
 resolved_zcomp() {
 	_default_zshcomp _resolvectl
+}
+
+run0() {
+	pkgdesc="A command to elevate privileges interactively"
+	depends="$pkgname=$pkgver-r$pkgrel"
+
+	amove usr/lib/pam.d/systemd-run0
+	amove usr/bin/run0
+}
+
+run0_bcomp() {
+	_default_bashcomp run0
+}
+
+run0_zcomp() {
+	_default_zshcomp _run0
 }
 
 logind() {
