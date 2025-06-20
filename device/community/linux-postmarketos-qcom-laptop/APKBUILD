@@ -2,13 +2,13 @@
 # Co-Maintainer: Casey Connolly <kcxt@postmarketos.org>
 pkgname=linux-postmarketos-qcom-laptop
 pkgver=6.15
-pkgrel=0
+pkgrel=1
 # Commit from branch @ https://github.com/jhovold/linux/tree/wip/x1e80100-$pkgver
 _commit="64941e2988752ce492e2dac6249535423189ee46"
 pkgdesc="Generic kernel for Qualcomm laptops"
 arch="aarch64"
 _carch="arm64"
-_flavor="postmarketos-qcom-laptop"
+_flavor="${pkgname#linux-}"
 url="https://kernel.org"
 license="GPL-2.0-only"
 options="!strip
@@ -38,23 +38,15 @@ replaces="linux-lenovo-21bx"
 _repository="linux"
 source="
 	$pkgname-$_commit.tar.gz::https://github.com/jhovold/$_repository/archive/$_commit.tar.gz
+	config-postmarketos-qcom-laptop.aarch64
 	misc.config
-	pmos.config
 "
 builddir="$srcdir/linux-$_commit"
-_outdir="out"
 _defconfig="johan_defconfig"
 
 prepare() {
 	default_prepare
-	cp "$srcdir/pmos.config" "$builddir"/arch/"$_carch"/configs/
-	cp "$srcdir/misc.config" "$builddir"/arch/"$_carch"/configs/
-
-	# Generate .config
-	unset LDFLAGS
-	make ARCH="$_carch" CC="${CC:-gcc}" \
-		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-$_flavor" \
-		"$_defconfig" pmos.config misc.config
+	cp "$srcdir/config-$_flavor.$CARCH" .config
 }
 
 build() {
@@ -82,6 +74,6 @@ package() {
 
 sha512sums="
 5eea324d83f243a50712f5317b2db55cd3e380eaa2e76d689dd5125bcbbd78601fbd1bf8622c95fa3e0ee43580bdbafce15c507aee65cb4ffac994f7c0b98948  linux-postmarketos-qcom-laptop-64941e2988752ce492e2dac6249535423189ee46.tar.gz
-bea4d6dcf60e90b8ce111c3b510e8f57db2d556b4b18aa257b267ea15ea4c90e4f81be656e59da0a525819d34354afdab3501234783c1542bbde9ee6670e17b8  misc.config
-89244418a7331fd89109591f2748bebdcc7c9a4a34980a551d0a42abf063cb47188758d5e22001caf10f8db893532544a3dbd1111764ddea9db6048bbde005f4  pmos.config
+da5c0220d43b4cdb0e064f545e142723a64184f3ef4004d236af65f07865bc6b17f265c45fdfd9b058fac5fa7b8428a7b3322b20da33f6325547b9a555407b84  config-postmarketos-qcom-laptop.aarch64
+cb5bc562263a888f500dfe9b2a3e46d87597f109d6b488ba26950d78f2ec005fa266be456d62f262993afebba0ee84953a8633fe26766570948e13a1225ebafe  misc.config
 "
