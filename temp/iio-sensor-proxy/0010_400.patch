@@ -1,0 +1,371 @@
+From 0de11afe466f4ad833f6c3ef07ab294529f35aba Mon Sep 17 00:00:00 2001
+From: "Sicelo A. Mhlongo" <absicsz@gmail.com>
+Date: Sat, 24 May 2025 09:41:28 +0200
+Subject: [PATCH] improve buffer sensor discovery
+
+The kernel drivers for some sensors report support for buffer mode, and allow
+the buffer to be enabled, but the mode actually never returns any data. To
+support these cases:
+
+- Modify prepare_output() to return a boolean value which will be used to check
+    if a read returned data or not
+- Relocate the .discover method to after the .open method, since .open will be
+    called during sensor discovery
+- Modify the .discover logic as follows:
+  - call the .open method to setup a complete sensor instance. This method also
+      checks if the buffer can be enabled
+  - enable the buffer and read from it using prepare_output method (the same as
+      when calling Claim() over DBus)
+  - if prepare_output() indicates success, the buffer driver will be used, and
+      on failure, the polling driver is used
+- Drop is_buffer_usable() since this is implicitly tested in the .open method
+    for each driver type. This method is now also run in the .discover method
+- Move trigger_name discovery calls to buffer_drv_data_new since all such calls
+    immediately call buffer_drv_data_new
+- tests: Open the mock buffer data before running startDaemon() since a
+    successful data read is now needed for buffer sensor discovery to succeed
+
+TODO:
+- rename prepare_output() to read_output(). This more closely describes what
+    the function does
+- implement the above changes in the buffer-light and buffer-compass drivers
+- split the commit into smaller logical units
+
+Supersedes: https://gitlab.freedesktop.org/hadess/iio-sensor-proxy/-/merge_requests/399
+Fixes: https://gitlab.freedesktop.org/hadess/iio-sensor-proxy/-/issues/411
+---
+ src/drv-iio-buffer-accel.c   | 77 +++++++++++++++++++++++-------------
+ src/drv-iio-buffer-compass.c | 13 +-----
+ src/drv-iio-buffer-light.c   | 12 +-----
+ src/iio-buffer-utils.c       | 23 ++---------
+ src/iio-buffer-utils.h       |  4 +-
+ tests/integration-test.py    | 16 +++++++-
+ 6 files changed, 70 insertions(+), 75 deletions(-)
+
+diff --git a/src/drv-iio-buffer-accel.c b/src/drv-iio-buffer-accel.c
+index 90747a6..1404216 100644
+--- a/src/drv-iio-buffer-accel.c
++++ b/src/drv-iio-buffer-accel.c
+@@ -78,10 +78,11 @@ process_scan (IIOSensorData data, SensorDevice *sensor_device)
+ 	return 1;
+ }
+ 
+-static void
++static gboolean
+ prepare_output (SensorDevice *sensor_device,
+ 		const char   *dev_dir_name,
+-		const char   *trigger_name)
++		const char   *trigger_name,
++		gboolean      discovery)
+ {
+ 	DrvData *drv_data = (DrvData *) sensor_device->priv;
+ 	g_autoptr(IIOSensorData) data = NULL;
+@@ -91,22 +92,31 @@ prepare_output (SensorDevice *sensor_device,
+ 
+ 	data = iio_sensor_data_new (drv_data->buffer_data->scan_size * buf_len);
+ 
+-	/* Attempt to open non blocking to access dev */
++	/* Attempt to open dev with non blocking access */
+ 	fp = open (drv_data->dev_path, O_RDONLY | O_NONBLOCK);
+-	if (fp == -1) { /* If it isn't there make the node */
++	if (fp == -1) {
+ 		if (!IS_TEST)
+ 			g_warning ("Failed to open '%s' at %s: %s", sensor_device->name, drv_data->dev_path, g_strerror (errno));
+-		return;
++		return FALSE;
+ 	}
+ 
+-	/* Actually read the data */
++	/*
++	 * Actually read the data. During sensor discovery, pause a little for
++	 * the buffer to fill up, since there will only be a one-shot reading
++	 */
++	if (discovery)
++		g_usleep(500000);
+ 	data->read_size = read (fp, data->data, buf_len * drv_data->buffer_data->scan_size);
+ 	if (data->read_size == -1 && errno == EAGAIN) {
+ 		g_debug ("No new data available on '%s'", sensor_device->name);
+-		return;
++		return FALSE;
+ 	}
+ 
+-	process_scan (*data, sensor_device);
++	/* Do not process the data if the read happens during sensor discovery */
++	if (!discovery)
++		process_scan (*data, sensor_device);
++
++	return TRUE;
+ }
+ 
+ static gboolean
+@@ -115,24 +125,11 @@ read_orientation (gpointer user_data)
+ 	SensorDevice *sensor_device = user_data;
+ 	DrvData *drv_data = (DrvData *) sensor_device->priv;
+ 
+-	prepare_output (sensor_device, drv_data->buffer_data->dev_dir_name, drv_data->buffer_data->trigger_name);
++	prepare_output (sensor_device, drv_data->buffer_data->dev_dir_name, drv_data->buffer_data->trigger_name, FALSE);
+ 
+ 	return G_SOURCE_CONTINUE;
+ }
+ 
+-static gboolean
+-iio_buffer_accel_discover (GUdevDevice *device)
+-{
+-	if (!drv_check_udev_sensor_type (device, "iio-buffer-accel", NULL))
+-		return FALSE;
+-
+-	if (!is_buffer_usable (device))
+-		return FALSE;
+-
+-	g_debug ("Found IIO buffer accelerometer at %s", g_udev_device_get_sysfs_path (device));
+-	return TRUE;
+-}
+-
+ static void
+ iio_buffer_accel_set_polling (SensorDevice *sensor_device,
+ 			      gboolean state)
+@@ -164,13 +161,9 @@ iio_buffer_accel_open (GUdevDevice *device)
+ {
+ 	SensorDevice *sensor_device;
+ 	DrvData *drv_data;
+-	g_autofree char *trigger_name = NULL;
+ 	BufferDrvData *buffer_data;
+ 
+-	/* Get the trigger name, and build the channels from that */
+-	trigger_name = get_trigger_name (device);
+-
+-	buffer_data = buffer_drv_data_new (device, trigger_name);
++	buffer_data = buffer_drv_data_new (device);
+ 	if (!buffer_data)
+ 		return NULL;
+ 
+@@ -205,6 +198,36 @@ iio_buffer_accel_close (SensorDevice *sensor_device)
+ 	g_free (sensor_device);
+ }
+ 
++static gboolean
++iio_buffer_accel_discover (GUdevDevice *device)
++{
++	SensorDevice *sensor_device;
++	DrvData *drv_data;
++	gboolean buffer_usable;
++
++	if (!drv_check_udev_sensor_type (device, "iio-buffer-accel", NULL))
++		return FALSE;
++
++	sensor_device = iio_buffer_accel_open (device);
++	if (!sensor_device)
++		return FALSE;
++
++	/* Attempt to read from the sensor */
++	drv_data = (DrvData *) sensor_device->priv;
++	enable_ring_buffer (drv_data->buffer_data);
++	buffer_usable = prepare_output (sensor_device, drv_data->buffer_data->dev_dir_name, drv_data->buffer_data->trigger_name, TRUE);
++
++	/* Close the sensor until it has been claimed */
++	disable_ring_buffer (drv_data->buffer_data);
++	iio_buffer_accel_close (sensor_device);
++
++	if (!buffer_usable)
++		return FALSE;
++
++	g_debug ("Found IIO buffer accelerometer at %s", g_udev_device_get_sysfs_path (device));
++	return TRUE;
++}
++
+ SensorDriver iio_buffer_accel = {
+ 	.driver_name = "IIO Buffer accelerometer",
+ 	.type = DRIVER_TYPE_ACCEL,
+diff --git a/src/drv-iio-buffer-compass.c b/src/drv-iio-buffer-compass.c
+index f0399f4..1acb230 100644
+--- a/src/drv-iio-buffer-compass.c
++++ b/src/drv-iio-buffer-compass.c
+@@ -109,9 +109,6 @@ iio_buffer_compass_discover (GUdevDevice *device)
+ 	if (!drv_check_udev_sensor_type (device, "iio-buffer-compass", NULL))
+ 		return FALSE;
+ 
+-	if (!is_buffer_usable (device))
+-		return FALSE;
+-
+ 	g_debug ("Found IIO buffer compass at %s", g_udev_device_get_sysfs_path (device));
+ 	return TRUE;
+ }
+@@ -121,17 +118,9 @@ iio_buffer_compass_open (GUdevDevice *device)
+ {
+ 	SensorDevice *sensor_device;
+ 	DrvData *drv_data;
+-	g_autofree char *trigger_name = NULL;
+ 	BufferDrvData *buffer_data;
+ 
+-	/* Get the trigger name, and build the channels from that */
+-	trigger_name = get_trigger_name (device);
+-	if (!trigger_name) {
+-		g_debug ("Could not find trigger for %s", g_udev_device_get_sysfs_path (device));
+-		return NULL;
+-	}
+-
+-	buffer_data = buffer_drv_data_new (device, trigger_name);
++	buffer_data = buffer_drv_data_new (device);
+ 	if (!buffer_data)
+ 		return NULL;
+ 
+diff --git a/src/drv-iio-buffer-light.c b/src/drv-iio-buffer-light.c
+index 4be2398..c9b35dd 100644
+--- a/src/drv-iio-buffer-light.c
++++ b/src/drv-iio-buffer-light.c
+@@ -114,9 +114,6 @@ iio_buffer_light_discover (GUdevDevice *device)
+ 	if (!drv_check_udev_sensor_type (device, "iio-buffer-als", NULL))
+ 		return FALSE;
+ 
+-	if (!is_buffer_usable (device))
+-		return FALSE;
+-
+ 	g_debug ("Found IIO buffer ALS at %s", g_udev_device_get_sysfs_path (device));
+ 	return TRUE;
+ }
+@@ -152,16 +149,9 @@ iio_buffer_light_open (GUdevDevice *device)
+ {
+ 	SensorDevice *sensor_device;
+ 	DrvData *drv_data;
+-	g_autofree char *trigger_name = NULL;
+ 	BufferDrvData *buffer_data;
+ 
+-	/* Get the trigger name, and build the channels from that */
+-	trigger_name = get_trigger_name (device);
+-	if (!trigger_name) {
+-		g_debug ("Could not find trigger for %s", g_udev_device_get_sysfs_path (device));
+-		return NULL;
+-	}
+-	buffer_data = buffer_drv_data_new (device, trigger_name);
++	buffer_data = buffer_drv_data_new (device);
+ 	if (!buffer_data)
+ 		return NULL;
+ 
+diff --git a/src/iio-buffer-utils.c b/src/iio-buffer-utils.c
+index 7a627d3..029509c 100644
+--- a/src/iio-buffer-utils.c
++++ b/src/iio-buffer-utils.c
+@@ -880,13 +880,14 @@ buffer_drv_data_free (BufferDrvData *buffer_data)
+ }
+ 
+ BufferDrvData *
+-buffer_drv_data_new (GUdevDevice *device,
+-		     const char  *trigger_name)
++buffer_drv_data_new (GUdevDevice *device)
+ {
+ 	BufferDrvData *buffer_data;
++	g_autofree char *trigger_name = NULL;
+ 
+ 	buffer_data = g_new0 (BufferDrvData, 1);
+ 	buffer_data->dev_dir_name = g_udev_device_get_sysfs_path (device);
++	trigger_name = get_trigger_name (device);
+ 	if (trigger_name)
+ 		buffer_data->trigger_name = g_strdup (trigger_name);
+ 	buffer_data->device = g_object_ref (device);
+@@ -903,24 +904,6 @@ buffer_drv_data_new (GUdevDevice *device,
+ 	return buffer_data;
+ }
+ 
+-gboolean
+-is_buffer_usable (GUdevDevice *device)
+-{
+-	g_autofree char *trigger_name = NULL;
+-	BufferDrvData *buffer_data;
+-
+-	trigger_name = get_trigger_name (device);
+-
+-	/* Temporarily enable the buffer to ensure the kernel driver is buffer-capable */
+-	buffer_data = buffer_drv_data_new (device, trigger_name);
+-	if (!buffer_data)
+-		return FALSE;
+-
+-	/* Destroy buffer information until actually needed (in the .open call) */
+-	g_clear_pointer (&buffer_data, buffer_drv_data_free);
+-	return TRUE;
+-}
+-
+ IIOSensorData *
+ iio_sensor_data_new (gsize size)
+ {
+diff --git a/src/iio-buffer-utils.h b/src/iio-buffer-utils.h
+index 597177a..7c1b773 100644
+--- a/src/iio-buffer-utils.h
++++ b/src/iio-buffer-utils.h
+@@ -43,8 +43,6 @@ gboolean iio_fixup_sampling_frequency  (GUdevDevice *dev);
+ char *get_trigger_name                 (GUdevDevice *device);
+ 
+ void           buffer_drv_data_free    (BufferDrvData *buffer_data);
+-BufferDrvData *buffer_drv_data_new     (GUdevDevice *device,
+-					const char  *trigger_name);
++BufferDrvData *buffer_drv_data_new     (GUdevDevice *device);
+ void     disable_ring_buffer           (BufferDrvData *data);
+ gboolean enable_ring_buffer            (BufferDrvData *data);
+-gboolean is_buffer_usable              (GUdevDevice *device);
+diff --git a/tests/integration-test.py b/tests/integration-test.py
+index 8910539..b596eaa 100755
+--- a/tests/integration-test.py
++++ b/tests/integration-test.py
+@@ -555,6 +555,9 @@ class Tests(dbusmock.DBusTestCase):
+             ['name', 'accel_3d-dev0'],
+             []
+         )
++        data = self.read_file(top_srcdir + '/tests/iio-buffer-accel-data/orientation-normal.bin')
++        with open(mock_dev_data,'wb') as mock_file:
++            mock_file.write(data)
+         self.start_daemon()
+         self.assertEqual(self.get_dbus_property('HasAmbientLight'), False)
+         self.assertEqual(self.get_dbus_property('HasAccelerometer'), True)
+@@ -566,7 +569,6 @@ class Tests(dbusmock.DBusTestCase):
+         self.assertEqual(self.read_sysfs_attr(accel, 'scan_elements/in_accel_y_en'), b'1')
+         self.assertEqual(self.read_sysfs_attr(accel, 'scan_elements/in_accel_z_en'), b'1')
+ 
+-        data = self.read_file(top_srcdir + '/tests/iio-buffer-accel-data/orientation-normal.bin')
+         with open(mock_dev_data,'wb') as mock_file:
+             mock_file.write(data)
+         self.proxy.ClaimAccelerometer()
+@@ -595,6 +597,8 @@ class Tests(dbusmock.DBusTestCase):
+ 
+     def test_driver_buffer_without_trigger(self):
+         '''buffer driver picking without trigger'''
++        top_srcdir = os.getenv('top_srcdir', '.')
++        mock_dev_data = self.testbed.get_root_dir() + '/iio-dev-data.bin'
+         accel = self.testbed.add_device('iio', 'iio-buffer-accel0', None,
+             ['name', 'IIO Test Accelerometer',
+              'buffer/enable', '0',
+@@ -615,6 +619,9 @@ class Tests(dbusmock.DBusTestCase):
+              'IIO_SENSOR_PROXY_TYPE', 'iio-buffer-accel']
+         )
+ 
++        data = self.read_file(top_srcdir + '/tests/iio-buffer-accel-data/orientation-normal.bin')
++        with open(mock_dev_data,'wb') as mock_file:
++            mock_file.write(data)
+         self.start_daemon()
+ 
+         self.assertEqual(self.get_dbus_property('HasAmbientLight'), False)
+@@ -696,10 +703,12 @@ class Tests(dbusmock.DBusTestCase):
+         )
+         env = os.environ.copy()
+         env['LC_NUMERIC'] = 'fr_FR.UTF-8'
++        data = self.read_file(top_srcdir + '/tests/iio-buffer-accel-data/orientation-normal.bin')
++        with open(mock_dev_data,'wb') as mock_file:
++            mock_file.write(data)
+         self.start_daemon(env=env)
+ 
+         self.assertEqual(self.get_dbus_property('HasAccelerometer'), True)
+-        data = self.read_file(top_srcdir + '/tests/iio-buffer-accel-data/orientation-normal.bin')
+         with open(mock_dev_data,'wb') as mock_file:
+             mock_file.write(data)
+         self.proxy.ClaimAccelerometer()
+@@ -742,6 +751,9 @@ class Tests(dbusmock.DBusTestCase):
+         )
+         env = os.environ.copy()
+         env['LC_NUMERIC'] = 'fr_FR.UTF-8'
++        data = self.read_file(top_srcdir + '/tests/iio-buffer-accel-data/orientation-normal.bin')
++        with open(mock_dev_data,'wb') as mock_file:
++            mock_file.write(data)
+         self.start_daemon(env=env)
+ 
+         self.assertEqual(self.get_dbus_property('HasAccelerometer'), True)
+-- 
+GitLab
+

@@ -2,7 +2,7 @@
 
 pkgname=iio-sensor-proxy
 pkgver=9999
-pkgrel=10
+pkgrel=11
 pkgdesc="IIO sensors to D-Bus proxy"
 url="https://gitlab.freedesktop.org/hadess/iio-sensor-proxy"
 arch="aarch64"
@@ -30,6 +30,7 @@ source="https://gitlab.freedesktop.org/hadess/iio-sensor-proxy/-/archive/$_commi
 	0007-data-iio-sensor-proxy.service.in-add-AF_QIPCRTR.patch
 	0008-drv-ssc-implement-set_polling.patch
 	0009-tests-integration-test-add-SSC-sensors.patch
+	0010_400.patch
 	"
 
 build() {
@@ -64,4 +65,5 @@ d4379f8e53eea02f53640752bef883870a44d0169cf821d3f5bb3245309cac1d1502a7848d5cce60
 376999144da2c5a6374de73bfaaf0eb605c5c686640f4de8cbcabbe3e78f3fce4675d5bfdc2dd60dacaa84447a039cf22cc4e5fcda478ea77a00001f052a3d85  0007-data-iio-sensor-proxy.service.in-add-AF_QIPCRTR.patch
 bf0ea8a078eb168937645a661fea5b979bf1747ee0c1cd556a238c25f4f26eefd6b2f7a1da1eb0b7d66dcafe24ce31521d71e1a188a324671b08178b392206af  0008-drv-ssc-implement-set_polling.patch
 2a208aa064e4f3d6cb24701f65c5cdc5d35a99f61489ac0ab5f336aa8229bc1aa7571b6d7e928a3a28e53b8e35a07655ec3e8b432d7295d82606f8b1f206e7af  0009-tests-integration-test-add-SSC-sensors.patch
+7cc11febbc38fc786bdc4b6367b78fa37b67e68e500e85351ef343c51066275454ed2eb444f4ef4ce588b5031ffeca445bd94ec4eea0ec70f11ef920f4abbff7  0010_400.patch
 "
