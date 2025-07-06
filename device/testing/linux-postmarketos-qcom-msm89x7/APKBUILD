@@ -6,7 +6,7 @@ pkgrel=0
 pkgdesc="Mainline kernel fork for Qualcomm QM215/MSM8917/MSM8937/MSM8940/SDM439 devices"
 arch="aarch64"
 _carch="arm64"
-url="https://github.com/msm89x7-mainline/linux"
+url="https://github.com/Veynamer/linux"
 license="GPL-2.0-only"
 options="!strip !check !tracedeps
 	pmb:cross-native
@@ -24,13 +24,13 @@ makedepends="
 	postmarketos-installkernel
 	python3
 	"
-_tag="$pkgver-r0"
+_commit="f07a5814b2110d3e2e4e899137c013144f57c019"
 _config="config-$_flavor.$arch"
 source="
-	$pkgname-v$_tag.tar.gz::$url/archive/v$_tag.tar.gz
+	$pkgname-v$_commit.tar.gz::$url/archive/$_commit.tar.gz
 	$_config
 "
-builddir="$srcdir/linux-$_tag"
+builddir="$srcdir/linux-$_commit"
 
 prepare() {
 	default_prepare
@@ -57,6 +57,6 @@ package() {
 		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
 }
 sha512sums="
-066875fdb27bb61fd295b2091ed5d48450c8673a6ff201a66439bd0f8f2a2d653703031416fca28cbab8335507daef55ef143c32e9879b007f9c7527cf21a525  linux-postmarketos-qcom-msm89x7-v6.15-r0.tar.gz
+2a087ad59713b32150bb7f5e3fa554a6216ae5bdfe536b8e49352429ced8989bffb54554f97d6390310a2b8f9d3b7d9de254e81465403ba7d9cad2622391f84f  linux-postmarketos-qcom-msm89x7-f07a5814b2110d3e2e4e899137c013144f57c019.tar.gz
 d2e2312346f10f7ed1bedd824604c65032f89b4a4b7f879e12b52f9e668d6458c9327388e8c999e59352294b5c0096f8d2e051cbd3f31aaf77c57e01ea972c5b  config-postmarketos-qcom-msm89x7.aarch64
 "
