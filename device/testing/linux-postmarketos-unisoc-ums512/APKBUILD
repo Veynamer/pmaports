@@ -6,7 +6,7 @@ pkgrel=0
 pkgdesc="Close to mainline Linux kernel with patches for Unisoc UMS512 devices"
 arch="aarch64"
 _carch="arm64"
-url="https://codeberg.org/Veynamer/linux-ums512"
+url="https://github.com/Veynamer/linux-ums512"
 license="GPL-2.0-only"
 options="!strip !check !tracedeps
 	pmb:cross-native

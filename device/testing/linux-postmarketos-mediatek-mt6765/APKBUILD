@@ -1,0 +1,70 @@
+# Maintainer: Jami Kettunen <jami.kettunen@protonmail.com>
+# Mainline Linux kernel fork with patches for MediaTek MT6765 devices
+# Kernel config based on: arch/arm64/configs/mt6763_defconfig
+_flavor="postmarketos-mediatek-mt6763"
+pkgname=linux-$_flavor
+pkgver=6.10_rc3
+pkgrel=1
+_commit="28e772f077a61ac1561d8dcbc7f17897628ce0da"
+pkgdesc="Mainline Kernel fork for MT6765-based devices"
+arch="aarch64"
+_carch="arm64"
+_config="config-$_flavor.$arch"
+url="https://githab.com/Veynamer/linux-mt6765"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps
+	pmb:cross-native
+"
+makedepends="
+	android-tools
+	bash
+	bison
+	findutils
+	flex
+	linux-headers
+	openssl-dev
+	perl
+	postmarketos-installkernel
+	xz
+"
+
+# Source
+source="
+	https://githab.com/Veynamer/linux-mt6765/-/archive/$_commit/linux-$_commit.tar.gz
+	$_config
+"
+builddir="$srcdir/linux-$_commit"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/config-$_flavor.$arch" .config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" CC="${CC:-gcc}" \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1))-$_flavor" \
+		V=1
+}
+
+package() {
+	mkdir -p "$pkgdir"/boot
+
+	make zinstall modules_install dtbs_install \
+		ARCH="$_carch" INSTALL_PATH="$pkgdir"/boot \
+		INSTALL_MOD_PATH="$pkgdir" INSTALL_MOD_STRIP=1 \
+		INSTALL_DTBS_PATH="$pkgdir"/boot/dtbs
+	rm -f "$pkgdir"/lib/modules/*/build "$pkgdir"/lib/modules/*/source
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+
+	dtbodir="$builddir/$_outdir/arch/arm64/boot/dts/mediatek"
+	mkdtboimg create "$pkgdir/boot/dtbo.img" \
+		"$dtbodir/mt6765-xiaomi-cactus-minimal-dtbo.dtb"
+}
+
+sha512sums="
+1d740a1d0494dbdf3f1ccefc5fc7dc4e13410e4161c4f04060dee717675122ef35d36fc2bf827700bfbaddb20e7b9bf136af1b8ab1c13b196d8edf4070ba7685  linux-28e772f077a61ac1561d8dcbc7f17897628ce0da.tar.gz
+1ebe1af852054bcbd9b3f41dc2fbcfaa57b4d8178dc279256d5c30b2a15458b17ecd30a4cf5e16c152040c303cd862d233c8a664874fdb6d3b18d53474198ef0  config-postmarketos-mediatek-mt6765.aarch64
+"
