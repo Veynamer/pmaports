@@ -58,6 +58,10 @@ package() {
 
 	install -D "$builddir"/include/config/kernel.release \
 		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+
+	dtbodir="$builddir/$_outdir/arch/arm64/boot/dts/mediatek"
+	mkdtboimg create "$pkgdir/boot/dtbo.img" \
+		"$dtbodir/mt6765-xiaomi-cactus-minimal-dtbo.dtb"
 }
 
 sha512sums="
