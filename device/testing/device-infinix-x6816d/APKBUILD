@@ -1,7 +1,7 @@
 # Maintainer: Affe Null <affenull2345@gmail.com>
 # Reference: <https://postmarketos.org/devicepkg>
-pkgname=device-infinix-x6816d
-pkgdesc="Infinix HOT 12 Play"
+pkgname=device-infinix-leo
+pkgdesc="Infinix HOT 12 Play NFC"
 pkgver=1
 pkgrel=0
 url="https://postmarketos.org"
@@ -31,6 +31,6 @@ package() {
 }
 
 sha512sums="
-78d7bb4e9479cd6cbf397de2c841beab67e042ae9d9e2809314b4353826d3c6d9c528f45aee111d903916ec1b499b47b7dac9d97603bed4036262775e9ad4821  deviceinfo
+bfa277313ca4f9b6e3836d0ca142e332e810dee034eb3fabb9488a1c2289721712e9735160091ac19514cd6dc9b7b36f8dda68201799500af0d90676412cc10a  deviceinfo
 be688838ca8686e5c90689bf2ab585cef1137c999b48c70b92f67a5c34dc15697b5d11c982ed6d71be1e1e7f7b4e0733884aa97c3f7a339a8ed03577cf74be09  modules-initfs
 "

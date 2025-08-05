@@ -1,12 +1,12 @@
 # Maintainer: Affe Null <affenull2345@gmail.com>
 _flavor="postmarketos-unisoc-ums512"
 pkgname=linux-$_flavor
-pkgver=6.15.0
+pkgver=6.16.0
 pkgrel=0
 pkgdesc="Close to mainline Linux kernel with patches for Unisoc UMS512 devices"
 arch="aarch64"
 _carch="arm64"
-url="https://github.com/Veynamer/linux-ums512"
+url="https://github.com/Veynamer/mainline-unisoc"
 license="GPL-2.0-only"
 options="!strip !check !tracedeps
 	pmb:cross-native
@@ -14,10 +14,10 @@ options="!strip !check !tracedeps
 "
 makedepends="bash bison findutils flex openssl-dev perl postmarketos-installkernel"
 
-_commit="0208cf956c41426003a2fcbcbe85e3c8b4dcc01c"
+_commit="de7b2f41a44f067384dba63ff0d6c0e9660e98c3"
 _config="config-$_flavor.$arch"
 source="
-	linux-$_commit.tar.gz::https://github.com/Veynamer/linux-ums512/archive/$_commit.tar.gz
+	linux-$_commit.tar.gz::https://github.com/Veynamer/mainline-unisoc/archive/$_commit.tar.gz
 	$_config
 "
 builddir="$srcdir/linux"
@@ -49,5 +49,5 @@ package() {
 
 sha512sums="
 082e50026e295a98e8cd8641b4bc05a60c81574c5c63c0d432c32b29d7bc17bc14f64c6aee19ecdbf4475c04146a3249a1208214d4d709af45c5b023abede0b9  linux-0208cf956c41426003a2fcbcbe85e3c8b4dcc01c.tar.gz
-041141f6d347fe379fc0398f480d67ed4c18234b182c369b46bc9657a79c0bb4d2cb7ebc96315a145114e95638af9da8925ae88f02d44ab866c6c5fde3966c81  config-postmarketos-unisoc-ums512.aarch64
+fb850b93c76ceed961dc260b74394159d6c514fcaa19d423da958eb59e8b348f91b0145e4a4340e131546ae43f021bac49a245efcf7d424651844aaf551d5ca5  config-postmarketos-unisoc-ums512.aarch64
 "
