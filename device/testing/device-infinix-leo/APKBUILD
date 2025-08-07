@@ -11,6 +11,7 @@ options="!check !archcheck"
 depends="
 	android-tools
 	linux-postmarketos-unisoc-ums512
+	u-boot-infinix-leo
 	postmarketos-base
 	mkbootimg
 "
@@ -23,6 +24,8 @@ source="
 build() {
 	devicepkg_build $startdir $pkgname
 
+	# Generate a dummy initramfs for the chainloadable U-Boot image
+	echo "dummy-initramfs" | cpio -o -H newc > dummy-initramfs
 }
 
 package() {

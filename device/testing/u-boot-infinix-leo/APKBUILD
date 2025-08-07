@@ -1,0 +1,34 @@
+# Maintainer: Affe Null <affenull2345@gmail.com>
+pkgname=u-boot-infinix-leo
+pkgver=2025.01_rc1_git20250423
+pkgrel=0
+pkgdesc="U-Boot bootloader for the Infinix HOT 12 Play NFC"
+url="https://github.com/Veynamer/u-boot"
+arch="aarch64"
+license="GPL-2.0-or-later OFL-1.1 BSD-2-Clause BSD-3-Clause eCos-2.0 IBM-pibs
+	ISC LGPL-2.0-only LGPL-2.1-only X11"
+makedepends="
+	bc
+	bison
+	dtc
+	flex
+	openssl-dev
+"
+_commit="958602bef17161e2be1fe1d7daef416caa3d4ef8"
+source="$url/archive/$_commit.tar.gz"
+options="!check !tracedeps pmb:cross-native"
+builddir="$srcdir"/u-boot
+
+build() {
+	make ARCH=arm infinix-x6816d_defconfig
+	make ARCH=arm
+}
+
+package() {
+	install -Dm644 "$builddir"/u-boot.bin \
+		-t "$pkgdir"/usr/share/u-boot/infinix-leo
+}
+
+sha512sums="
+8371a46c6850786168531e730c1ddafab500e5a954e9c3a5e262cba7ccc1d47822b2e615519395a14f60f02f33cfb2f4f36a173e85584b7bd16389e42b6276d4  958602bef17161e2be1fe1d7daef416caa3d4ef8.tar.gz
+"
