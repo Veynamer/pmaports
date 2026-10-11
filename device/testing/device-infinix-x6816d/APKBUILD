@@ -1,0 +1,56 @@
+# Reference: <https://postmarketos.org/devicepkg>
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+pkgname=device-infinix-x6816d
+pkgdesc="Infinix Hot 12 play NFC"
+pkgver=1
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="aarch64"
+options="!check !archcheck"
+depends="
+	alsa-ucm-conf-unisoc-ums512
+	android-tools
+	linux-postmarketos-unisoc-ums512
+	postmarketos-base
+	firmware-infinix-x6816d-touchscreen
+	firmware-infinix-x6816d-wcn
+	u-boot-infinix-x6816d
+"
+makedepends="devicepkg-dev"
+source="
+	90-firmware-loader.rules
+	deviceinfo
+	load-firmware.sh
+	modules-initfs
+	pulse-infinix-x6816d.conf
+"
+
+build() {
+	devicepkg_build $startdir $pkgname
+
+	# Generate a dummy initramfs for the chainloadable U-Boot image
+	# NOTE: must not be zero-filled empty file, otherwise bootloader complains
+	echo "this is empty" > dummy-initramfs
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+
+	install -Dm644 "$srcdir"/pulse-infinix-x6816d.conf \
+		"$pkgdir"/etc/pulse/daemon.conf.d/89-infinix-x6816d.conf
+	install -Dm644 dummy-initramfs \
+		"$pkgdir"/usr/share/u-boot/infinix-x6816d/dummy-initramfs
+	install -Dm644 "$srcdir"/90-firmware-loader.rules \
+		-t "$pkgdir"/usr/lib/udev/rules.d
+	install -Dm755 "$srcdir"/load-firmware.sh \
+		"$pkgdir"/usr/libexec/infinix-x6816d-firmware.sh
+}
+
+sha512sums="
+f6da5d2c3afc227aa2b82650d895b1248497d3fdb5f2338e0f602c464f9c4711548edb631957cc4a0d921529b218689e01ed0b383d086f85ce4613bfbc1f3724  90-firmware-loader.rules
+a68c9bed4f2ae0a389224a80d2b31717905397c86f2eaed7d45103ecda8e8ae6b65bfd716e79558e5c8c0a1f25f8da8b130ac2542e94cd79941107920ca6948f  deviceinfo
+e43a9d3171e95f16571c07dc3af8e50a97fc046cbb1463776845bbb09b759b7ec2d35e3ccb49aa54f36a17464a52729c091a27720fafca85c89c47dd3e881926  load-firmware.sh
+e70bae17df23dcaaaea0e2d3616556f04baa23f8ee1357785c0f539bf97282d8ddff53953e155b72689bb73beb38c2da3d08de2a61e866684edfa10a6593885d  modules-initfs
+9c472065b19141dd4c7555869b955de2e679b36e597f9fa3bdac18d0e9460986b0e2fffe1e04751301305f1b6474c1375803afb7d6212eeae91b4905d0bf8ff8  pulse-infinix-x6816d.conf
+"

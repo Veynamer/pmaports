@@ -1,0 +1,34 @@
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+pkgname=u-boot-infinix-x6816d
+pkgver=2025.07
+pkgrel=0
+pkgdesc="U-Boot bootloader for the Infinix Hot 12 Play NFC"
+url="https://github.com/Veynamer/u-boot"
+arch="aarch64"
+license="GPL-2.0-or-later OFL-1.1 BSD-2-Clause BSD-3-Clause eCos-2.0 IBM-pibs
+	ISC LGPL-2.0-only LGPL-2.1-only X11"
+makedepends="
+	bc
+	bison
+	dtc
+	flex
+	openssl-dev
+"
+_commit="f00c02f0f480c9b3aa2394c2ed74ffbaf09d14cb"
+source="$url/archive/$_commit.tar.gz"
+options="!check !tracedeps pmb:cross-native"
+builddir="$srcdir/u-boot-$_commit"
+
+build() {
+	make ARCH=arm infinix-x6816d_defconfig
+	make ARCH=arm
+}
+
+package() {
+	install -Dm644 "$builddir"/u-boot.bin \
+		-t "$pkgdir"/usr/share/u-boot/infinix-x6816d
+}
+
+sha512sums="
+049c43ff8e524b0160710bf58914e40ce79f406ecea1e007eef6d6acb6792809055e86e677b7bad9052486a1fec7ea266c7014e34edda70710f92c03d2964bae  f00c02f0f480c9b3aa2394c2ed74ffbaf09d14cb.tar.gz
+"

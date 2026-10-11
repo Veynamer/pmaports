@@ -1,0 +1,23 @@
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+pkgname=alsa-ucm-conf-unisoc-ums512
+pkgver=1.2.9_git20251211
+pkgrel=1
+pkgdesc="ALSA UCM configuration for UMS512 devices"
+url="https://github.com/Veynamer/alsa-ucm-conf"
+arch="aarch64"
+license="BSD-3-Clause"
+provides="alsa-ucm-conf=0.${pkgver%_*}-r$pkgrel" # versioned provides need to be below default version
+_commit="cc278a3e8bfd33fee256fc5e65fb51254d2c4b4a"
+source="alsa-ucm-conf-$_commit.tar.gz::$url/archive/$_commit.tar.gz"
+options="!check"
+builddir="$srcdir/alsa-ucm-conf-$_commit"
+
+package() {
+	# install audio config files
+	mkdir -p "$pkgdir"/usr/share/alsa/ucm2
+	cp -r ucm2 "$pkgdir"/usr/share/alsa/
+}
+
+sha512sums="
+4f846defc9afeeb56f36eb61866a1bfb684d2840b529a0edcb7565dfff601493b49c9cdd13f593603789ee7c5b517efe063f2883ead66a97fde7909de36b2c8d  alsa-ucm-conf-cc278a3e8bfd33fee256fc5e65fb51254d2c4b4a.tar.gz
+"
