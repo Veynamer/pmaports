@@ -1,0 +1,1 @@
+SUBSYSTEM=="firmware", ACTION=="add", RUN="/usr/libexec/infinix-x6816d-firmware.sh"

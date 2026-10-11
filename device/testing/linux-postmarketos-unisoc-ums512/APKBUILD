@@ -1,0 +1,69 @@
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+_flavor="postmarketos-unisoc-ums512"
+pkgname=linux-$_flavor
+pkgver=7.1.0_rc1
+pkgrel=0
+pkgdesc="Linux kernel with patches for Unisoc UMS512 devices"
+arch="aarch64"
+_carch="arm64"
+url="https://github.com/Veynamer/linux"
+license="GPL-2.0-only"
+options="!strip !check !tracedeps
+	pmb:cross-native
+	pmb:kconfigcheck-nftables
+	pmb:kconfigcheck-community
+"
+makedepends="
+	bison
+	clang
+	elfutils-dev
+	findutils
+	flex
+	linux-headers
+	lld
+	llvm
+	openssl-dev
+	pahole
+	perl
+	postmarketos-installkernel
+	python3
+	zstd
+"
+
+_commit="38aaac753a793cef8971e78c63c71243e1beaac8"
+_config="config-$_flavor.$arch"
+source="
+	linux-$_commit.tar.gz::$url/archive/$_commit/linux-$_commit.tar.gz
+	$_config
+"
+builddir="$srcdir/linux-$_commit"
+
+prepare() {
+	default_prepare
+	cp "$srcdir/$_config" .config
+}
+
+build() {
+	unset LDFLAGS
+	make ARCH="$_carch" LLVM=1 \
+		KBUILD_BUILD_VERSION="$((pkgrel + 1 ))-postmarketOS"
+}
+
+package() {
+	mkdir -p "$pkgdir"/boot
+	make zinstall modules_install dtbs_install \
+		ARCH="$_carch" LLVM=1 \
+		INSTALL_PATH="$pkgdir"/boot \
+		INSTALL_MOD_PATH="$pkgdir"/usr \
+		INSTALL_MOD_STRIP=1 \
+		INSTALL_DTBS_PATH="$pkgdir"/boot/dtbs
+	rm -f "$pkgdir"/usr/lib/modules/*/build "$pkgdir"/usr/lib/modules/*/source
+
+	install -D "$builddir"/include/config/kernel.release \
+		"$pkgdir"/usr/share/kernel/$_flavor/kernel.release
+}
+
+sha512sums="
+b16f9ae3d36c8be30ca112d4a4819f4643d8cea98819eb2b228a1661ca18f2a4134bb3296e63407065249b4c95d4e89759492e4a7700dd12f193abe17d7701b9  linux-38aaac753a793cef8971e78c63c71243e1beaac8.tar.gz
+dfdf7a09a0101b3e4de45b8159382be7c247d48bcd4a85215f11d4aa488b53774c37272923dd504931cb5dbf9959fe96878f8f4830be4dc95b03b131515a93fa  config-postmarketos-unisoc-ums512.aarch64
+"

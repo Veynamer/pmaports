@@ -1,0 +1,43 @@
+# Reference: <https://postmarketos.org/devicepkg>
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+pkgname=device-infinix-x6816d
+pkgdesc="Infinix Hot 12 play NFC"
+pkgver=1
+pkgrel=0
+url="https://postmarketos.org"
+license="MIT"
+arch="aarch64"
+options="!check !archcheck"
+depends="
+	android-tools
+	linux-postmarketos-unisoc-ums512
+	postmarketos-base
+	firmware-infinix-x6816d-touchscreen
+	firmware-infinix-x6816d-wcn
+	u-boot-infinix-x6816d
+"
+makedepends="devicepkg-dev"
+source="
+	deviceinfo
+	modules-initfs
+"
+
+build() {
+	devicepkg_build $startdir $pkgname
+
+	# Generate a dummy initramfs for the chainloadable U-Boot image
+	# NOTE: must not be zero-filled empty file, otherwise bootloader complains
+	echo "this is empty" > dummy-initramfs
+}
+
+package() {
+	devicepkg_package $startdir $pkgname
+
+	install -Dm644 dummy-initramfs \
+		"$pkgdir"/usr/share/u-boot/infinix-x6816d/dummy-initramfs
+}
+
+sha512sums="
+a68c9bed4f2ae0a389224a80d2b31717905397c86f2eaed7d45103ecda8e8ae6b65bfd716e79558e5c8c0a1f25f8da8b130ac2542e94cd79941107920ca6948f  deviceinfo
+e70bae17df23dcaaaea0e2d3616556f04baa23f8ee1357785c0f539bf97282d8ddff53953e155b72689bb73beb38c2da3d08de2a61e866684edfa10a6593885d  modules-initfs
+"

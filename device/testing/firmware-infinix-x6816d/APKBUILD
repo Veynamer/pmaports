@@ -1,0 +1,50 @@
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+pkgname=firmware-infinix-x6816d
+pkgver=1
+pkgrel=1
+pkgdesc="Firmware for the Infinix Hot 12 Play NFC"
+url="https://github.com/Veynamer/firmware-infinix-x6816d"
+arch="aarch64"
+license="proprietary"
+subpackages="
+	$pkgname-touchscreen
+	$pkgname-wcn
+"
+makedepends="python3"
+options="!check !archcheck !strip !spdx !tracedeps pmb:cross-native"
+
+_commit="620d9a4e3ebb0f2543a2eb659888343acf596f7b"
+source="
+	https://github.com/Veynamer/firmware-infinix-x6816d/archive/$_commit/firmware-$_commit.tar.gz
+	10-touch-firmware.files
+"
+builddir="$srcdir/firmware-infinix-x6816d-$_commit"
+
+package() {
+	# parent package is empty
+	mkdir -p "$pkgdir"
+}
+
+touchscreen() {
+	pkgdesc="Infinix Hot 12 Play NFC touchscreen firmware"
+
+	install -Dm644 "$builddir/omnivision/X6816DRU_TD4160_TM_fw.img" -t \
+		"$subpkgdir/lib/firmware/omnivision/"
+	install -Dm644 "$srcdir/10-touch-firmware.files" -t \
+		"$subpkgdir/usr/share/mkinitfs/files/"
+}
+
+wcn() {
+	pkgdesc="Infinix Hot 12 Play NFC WiFi, Bluetooth firmware"
+	_fwdir="$subpkgdir"/lib/firmware/sprd
+
+	install -Dm644 "$builddir/sprd/wcnmodem.bin" -t "$_fwdir"
+	install -Dm644 "$builddir/sprd/wifi_board_config.ini" -t "$_fwdir"
+	install -Dm644 "$builddir/sprd/bt_configure_pskey.ini" -t "$_fwdir"
+	install -Dm644 "$builddir/sprd/bt_configure_rf.ini" -t "$_fwdir"
+}
+
+sha512sums="
+92ac82204c7199c22affb6c9fc17ce7bcf28325a254d46f95ad9b0a0947e768f89b2e4427a93fa630a6c3ab7e3bb8cd4622eaebba72f89e0f2ae79e568c943e1  firmware-620d9a4e3ebb0f2543a2eb659888343acf596f7b.tar.gz
+db4e0599a611038a242aa9b08c5c255b3165c0d9202a3a85fbbdfe35b3a25fc39f21370e59a141961ff91201dad3aeeda7bfc1ed36967e654658fcf46eb30cd5  10-touch-firmware.files
+"
