@@ -1,0 +1,37 @@
+maintainer="Veynamer <veyr1thalone@gmail.com>"
+pkgname=firmware-infinix-x6816d
+pkgver=1
+pkgrel=1
+pkgdesc="Firmware for the Infinix Hot 12 Play NFC"
+url="https://github.com/Veynamer/firmware-infinix-x6816d"
+arch="aarch64"
+license="proprietary"
+subpackages="$pkgname-touchscreen"
+makedepends="python3"
+options="!check !archcheck !strip !spdx !tracedeps pmb:cross-native"
+
+_commit="1d703301f4a53ea2baa0f756ae0c07fccda4e3ae"
+source="
+	https://github.com/Veynamer/firmware-infinix-x6816d/archive/$_commit/firmware-$_commit.tar.gz
+	10-touch-firmware.files
+"
+builddir="$srcdir/firmware-infinix-x6816d-$_commit"
+
+package() {
+	# parent package is empty
+	mkdir -p "$pkgdir"
+}
+
+touchscreen() {
+	pkgdesc="Infinix Hot 12 Play NFC touchscreen firmware"
+
+	install -Dm644 "$builddir/omnivision/X6816DRU_TD4160_TM_fw.img" -t \
+		"$subpkgdir/lib/firmware/omnivision/"
+	install -Dm644 "$srcdir/10-touch-firmware.files" -t \
+		"$subpkgdir/usr/share/mkinitfs/files/"
+}
+
+sha512sums="
+c78f900a302d45a8a9c71a6c60ad56fb13cb9bc2e637730fa052fbeb6cf8490d4ed765037f59d041efedab69c3905a9182992af7c1a3d0f0e23b18fe504a6374  firmware-1d703301f4a53ea2baa0f756ae0c07fccda4e3ae.tar.gz
+db4e0599a611038a242aa9b08c5c255b3165c0d9202a3a85fbbdfe35b3a25fc39f21370e59a141961ff91201dad3aeeda7bfc1ed36967e654658fcf46eb30cd5  10-touch-firmware.files
+"
